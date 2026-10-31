@@ -82,7 +82,7 @@ button.worked-chip { cursor: pointer; }
 .annotation-overlay .operation-annotation:focus { fill: #2e5f99; outline: none; text-decoration: underline; }
 .annotated-explorer:not(.annotation-detail) .matrix-value::before,
 .annotated-explorer:not(.annotation-detail) .matrix-value::after { visibility: hidden; }
-@media(max-width: 760px) { .annotated-explorer { padding-left: 185px; } }
+@media(max-width: 760px) { .annotated-explorer { padding-left: 80px; } }
 @media(max-width: 760px) { .annotation-overlay { clip-path: inset(126px 0 44px 0); } }
 @media print { .annotation-overlay, .bracket-fade { display: none; } }
 

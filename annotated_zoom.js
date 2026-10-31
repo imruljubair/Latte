@@ -52,7 +52,7 @@
     if (!bounds) return;
     const scale = currentZoom();
     const origin = sheet.getBoundingClientRect();
-    const left = window.innerWidth < 760 ? 190 : 255;
+    const left = window.innerWidth < 760 ? 90 : 255;
     const right = window.innerWidth-16;
     const top = window.innerWidth < 760 ? 136 : 90;
     const bottom = window.innerHeight-footerInset-16;
@@ -143,7 +143,7 @@
     if (!bounds) return;
     const scale = currentZoom();
     const origin = sheet.getBoundingClientRect();
-    const left = window.innerWidth < 760 ? 190 : 255;
+    const left = window.innerWidth < 760 ? 90 : 255;
     const top = window.innerWidth < 760 ? 136 : 90;
     // Token embeddings share the result-matrix column; auxiliary weights
     // extend farther left and must not determine the reset alignment.

@@ -88,6 +88,10 @@ the same seed and settings deliberately reproduce the same starting curve.
 Recent runs include **Delete** for inactive training runs. Deleted files move to
 `out/.trash/` for recovery, and the default example stays available. Other entries, including browser-check, can be deleted.
 
+Use the corpus panel’s show/hide button to give the diagram more room. The panel
+starts collapsed on mobile; mobile hierarchy brackets use compact, upward-facing
+labels. Desktop bracket labels stay horizontal.
+
 Enable **Corpus heatmap** to shade each corpus position by its cumulative input
 usage across the entire training run. Counts scale linearly from cool blue
 (zero uses) through green to warm red (the maximum frequency in this run).

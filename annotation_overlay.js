@@ -196,7 +196,8 @@
     const visibleTop = width < 760 ? 84 : 44;
     const picking=window.LittleLlamaWorkbook.stagePicking?.()||false;
     groupPicks.forEach(control=>control.hidden=true);
-    const rail = picking?(width<760?[20,105,190]:[28,126,224]):(width < 760 ? [12,66,120] : [28,102,176]);
+    const mobile=width<760;
+    const rail = picking?(mobile?[20,48,76]:[28,126,224]):(mobile ? [12,34,56] : [28,102,176]);
     const level=Math.max(0,...bands.filter(band=>band.cards.some(card=>frameMatrices.has(card))).map(band=>band.level));
     // Like KeVin's scene clip, keep matrix ink on the content side of the
     // innermost visible bracket, with a short feathered edge.
@@ -223,9 +224,11 @@
       const railLevel=cacheTimeline?(band.level===1?2:band.level===2?1:0):band.level;
       const x = rail[railLevel];
       make('path', {d:`M ${x+7} ${top} H ${x} V ${bottom} H ${x+7}`, fill:'none', stroke:color, 'stroke-width':band.level === 0 ? 1.5 : 1, opacity:.7,'data-bracket-label':cacheTimeline&&band.level===1&&band.label==='Attention'?'Projections':band.label},undefined,`band:${bandIndex}`);
-      const labelY = Math.min(height-55,Math.max(98,top+13));
+      const labelY = mobile ? (Math.max(126,top)+Math.min(height-55,bottom))/2 : Math.min(height-55,Math.max(98,top+13));
       if(labelY>bottom+7)return;
-      const label=make('text',{x:x+10,y:labelY,fill:color,'font-size':12,'font-weight':700,class:'hierarchy-bracket-label','data-stage-band-label':band.label},cacheTimeline&&band.label==='Attention'?'Projections':band.label,`band:${bandIndex}`);
+      const label=make('text',{x:x+10,y:labelY,fill:color,'font-size':mobile?11:12,'font-weight':700,
+        ...(mobile?{transform:`rotate(-90 ${x+10} ${labelY})`,'text-anchor':'middle'}:{}),
+        class:'hierarchy-bracket-label','data-stage-band-label':band.label},cacheTimeline&&band.label==='Attention'?'Projections':band.label,`band:${bandIndex}`);
       const title=label.querySelector('title')||document.createElementNS(namespace,'title');
       if(title.textContent!==band.label)title.textContent=band.label;
       if(title.parentNode!==label)label.append(title);
@@ -311,7 +314,7 @@
       const labelWidth = Math.min(300,label.length*6+20);
       const pinned = naturalX+labelWidth > width-16;
       const x = pinned ? width-16 : naturalX;
-      if (!pinned && x < (width < 760 ? 185 : 250)) return;
+      if (!pinned && x < (width < 760 ? 80 : 250)) return;
       rightEdgeActive ||= pinned;
       make('path',{d:`M ${x-7} ${top} H ${x} V ${bottom} H ${x-7}`,fill:'none',stroke:'#879bb4','stroke-width':1,opacity:.8},undefined,`operation:${index}`);
       const y = Math.max(100,Math.min(height-57,(top+bottom)/2+3));

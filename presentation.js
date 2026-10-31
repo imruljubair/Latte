@@ -520,6 +520,26 @@
   function enhance(panel){
     if(panel.dataset.lattePresentation)return;
     panel.dataset.lattePresentation='true';
+    const sidebar=panel.querySelector('.training-body > aside');
+    if(sidebar){
+      sidebar.id='latte-corpus-sidebar';
+      const toggle=make('button','latte-sidebar-toggle');toggle.type='button';
+      toggle.setAttribute('aria-controls',sidebar.id);
+      toggle.innerHTML='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg><span>Hide panel</span>';
+      sidebar.prepend(toggle);
+      const style=make('style','','html:root .training-body>aside.latte-sidebar-collapsed{width:34px;padding:0;overflow:hidden}html:root .training-body>aside.latte-sidebar-collapsed>:not(.latte-sidebar-toggle){display:none!important}html:root .training-replay .latte-sidebar-toggle{display:flex;align-items:center;justify-content:center;gap:4px;flex:none;margin-left:auto;padding:3px 5px;font-size:10px;background:transparent}html:root .training-replay .latte-sidebar-collapsed .latte-sidebar-toggle{width:100%;height:36px;border:0;border-radius:0;margin:0} .latte-sidebar-collapsed .latte-sidebar-toggle span{display:none}.latte-sidebar-collapsed .latte-sidebar-toggle svg{transform:rotate(180deg)}');document.head.append(style);
+      const mobile=matchMedia('(max-width:760px)');let chosen=false;
+      function setCollapsed(collapsed){
+        sidebar.classList.toggle('latte-sidebar-collapsed',collapsed);
+        toggle.setAttribute('aria-expanded',String(!collapsed));
+        toggle.setAttribute('aria-label',collapsed?'Show corpus panel':'Hide corpus panel');
+        toggle.title=collapsed?'Show corpus panel':'Hide corpus panel';
+        requestAnimationFrame(()=>{window.dispatchEvent(new Event('resize'));sidebar.parentElement.querySelector('iframe')?.contentWindow?.dispatchEvent(new Event('resize'));});
+      }
+      toggle.onclick=()=>{chosen=true;setCollapsed(!sidebar.classList.contains('latte-sidebar-collapsed'));};
+      mobile.addEventListener('change',()=>{if(!chosen)setCollapsed(mobile.matches);});
+      setCollapsed(mobile.matches);
+    }
     installCorpusTooltip(panel);
     let chrome=panel.querySelector('.latte-chrome-host');
     if(!chrome){chrome=make('div','latte-chrome-host');panel.prepend(chrome);}
@@ -545,7 +565,9 @@
     const iframe=panel.querySelector('iframe');
     const mathSection=make('section','latte-math-section');mathSection.hidden=true;
     mathSection.innerHTML='<h3>Selected calculation</h3><p>Click a variable to trace it in the diagram.</p><div class="latte-math-content"></div>';
-    panel.querySelector('.training-body > aside').prepend(mathSection);
+    const sidebarToggle=panel.querySelector('.latte-sidebar-toggle');
+    if(sidebarToggle)sidebarToggle.after(mathSection);
+    else panel.querySelector('.training-body > aside').prepend(mathSection);
     document.addEventListener('keydown',event=>{if(event.key==='Escape')iframe.contentWindow?.LattePresentation?.clear();});
     function sync(){const math=controls.querySelector('#latte-math').checked;panel.classList.toggle('latte-training-math-enabled',math);const api=iframe.contentWindow?.LattePresentation;if(api){api.setMathHost(mathSection);api.setMathMode(math);api.setNumbers(controls.querySelector('#latte-numbers').checked);}}
     iframe.addEventListener('load',sync);sync();
