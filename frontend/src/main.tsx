@@ -1,5 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { revealApp } from './startup';
+import { isDemo, demoResponse } from './demo';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { createStepCache } from './step-cache.mjs';
@@ -13,7 +14,7 @@ const run = new URLSearchParams(location.search).get('run') || 'default';
 const base = `/api/runs/${encodeURIComponent(run)}`;
 
 async function response(path: string) {
-  const result = await fetch(path);
+  const result = await (isDemo ? demoResponse(path) : fetch(path));
   if (!result.ok) throw new Error(`${result.status}: ${await result.text()}`);
   return result;
 }

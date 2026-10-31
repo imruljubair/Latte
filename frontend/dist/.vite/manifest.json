@@ -4,12 +4,12 @@
     "src": "../fonts/Fraunces-Variable.ttf"
   },
   "src/main.tsx": {
-    "file": "assets/main-BIfd0Nbu.js",
+    "file": "assets/main-BKo7elbx.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
     "css": [
-      "assets/main-CMcz2QN-.css"
+      "assets/main-CvbnmLx4.css"
     ],
     "assets": [
       "assets/Fraunces-Variable-BR5x10i8.ttf"

@@ -8,6 +8,7 @@ import gzip
 import hashlib
 from html import escape
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -29,33 +30,6 @@ def document(title, body, active):
             f'<title>{escape(title)} · One Small Latte</title><link rel="icon" href="logo.png"><link rel="stylesheet" href="demo.css"></head>'
             '<body class="demo-page"><header class="demo-header"><a class="demo-brand" href="./"><img src="logo.png" alt="">One Small Latte</a>'
             +navigation(active)+'</header><main>'+body+'</main></body></html>')
-
-
-def chart(progress):
-    series = [(progress['history'],'Training','#a56b35',''),(progress['validation_history'],'Validation','#538b9b',' stroke-dasharray="5 4"')]
-    losses=[point['loss'] for points,*_ in series for point in points]
-    low,high=min(losses),max(losses)
-    span=max(.1,high-low);low=max(0,low-span*.08);high+=span*.08
-    width,height=760,220
-    x=lambda step:52+step/progress['total_steps']*680
-    y=lambda loss:180-(loss-low)/(high-low)*160
-    lines=['<svg class="demo-chart" viewBox="0 0 760 220" role="img" aria-label="Recorded training and validation loss versus optimizer step">']
-    for ratio in (0,.5,1):
-        loss=low+(high-low)*ratio
-        lines.append(f'<path d="M52 {y(loss):.2f}H732" stroke="#e2d4c5" stroke-dasharray="4 5"/><text x="4" y="{y(loss)+4:.2f}">{loss:.2f}</text>')
-    for points,label,color,dash in series:
-        path=' '.join(f'{"M" if index==0 else "L"}{x(point["step"]):.2f} {y(point["loss"]):.2f}' for index,point in enumerate(points))
-        lines.append(f'<path d="{path}" fill="none" stroke="{color}" stroke-width="1.1" vector-effect="non-scaling-stroke"{dash}><title>{label}</title></path>')
-    for step in (0,round(progress['total_steps']/2),progress['total_steps']):
-        lines.append(f'<text x="{x(step):.2f}" y="208" text-anchor="middle">{step}</text>')
-    lines.append('</svg>')
-    return ''.join(lines)
-
-
-def settings(title,values):
-    return '<section class="demo-card"><h2>'+title+'</h2><dl>'+''.join(
-        '<div><dt>'+escape(key.replace('_',' ').capitalize())+'</dt><dd>'+escape(str(value))+'</dd></div>'
-        for key,value in values.items())+'</dl></section>'
 
 
 def build(output):
@@ -89,23 +63,46 @@ def build(output):
             (folder/name).write_bytes(payload)
         export_trace_html(folder/'training.trace.json',output/'index.html',show='training')
     html=(output/'index.html').read_text()
-    html=html.replace('</head>','<link rel="stylesheet" href="demo.css"></head>',1)
-    html=html.replace('</body>','<script src="demo.js"></script></body>',1)
+    match=re.search(r'<script id="sequence-generation-data" type="application/json">(.*?)</script>',html,re.S)
+    bundle=json.loads(match[1])
+    runtime=bundle['trainingRuntime'].replace('</script','<\\/script')
+    html=html.replace('<script>'+runtime+'</script>','',1)
+    html=re.sub(r'<script id="training-record-data".*?</script>','',html,count=1,flags=re.S)
+    lean={'show':'training','trace':bundle['trace']}
+    html=re.sub(r'<script id="sequence-generation-data".*?</script>',
+                lambda _: '<script id="sequence-generation-data" type="application/json">'+json.dumps(lean).replace('<','\\u003c')+'</script>',html,count=1,flags=re.S)
+    metadata={**{key:value for key,value in record.items() if key!='steps'},
+              'corpus_usage':record['steps'][-1]['corpus_usage'],
+              'steps':[{'step':step['step'],'loss':step['loss']} for step in record['steps']]}
+    run={'id':'demo','name':manifest['name'],'state':'complete','explorer_ready':True,
+         'log':'Recorded CPU PyTorch run · 201 optimizer steps · six saved checkpoints.','progress':progress}
+    config=tomllib.loads((ROOT/'demo/config.toml').read_text())
+    settings={'model':{key:value for key,value in config['model'].items() if key!='dropout'},
+              'training':{key:config['training'][key] for key in ('steps','batch_size','learning_rate','weight_decay','seed')}}
+    settings['training'].update(train_split=config['data']['train_split'],record_every=record['recording']['stride'])
+    (output/'data').mkdir()
+    (output/'data/workspace.json').write_text(json.dumps({'metadata':metadata,'shell':bundle['shell'],'steps':record['steps'],'run':run,'settings':settings},ensure_ascii=False))
+    dist=ROOT/'frontend/dist'
+    entry=json.loads((dist/'.vite/manifest.json').read_text())['src/main.tsx']
+    shutil.copytree(dist,output/'ui')
+    # Local builds use /ui; published assets must resolve beneath /Latte/.
+    for css in (output/'ui').rglob('*.css'):
+        css.write_text(css.read_text().replace('url(/ui/assets/','url('))
+    styles=''.join(f'<link rel="stylesheet" href="ui/{path}">' for path in entry.get('css',[]))
+    html=re.sub(r'<html\b','<html data-latte-demo data-latte-loading',html,count=1)
+    loading='<style>html[data-latte-loading] body>*{visibility:hidden!important}html[data-latte-loading] #latte-loading{visibility:visible!important;position:fixed;inset:0;z-index:2147483647;display:grid;place-items:center;background:#f7f2eb;color:#826c5c;font:14px system-ui}</style>'
+    html=re.sub(r'<head\b[^>]*>',lambda match:match[0]+loading,html,count=1)
+    html=re.sub(r'<body\b[^>]*>',lambda match:match[0]+'<div id="latte-loading" role="status">Loading Latte…</div>',html,count=1)
+    html=html.replace('</head>',styles+'<link rel="stylesheet" href="demo.css"></head>',1)
+    html=html.replace('</body>','<div id="latte-root"></div>'+f'<script type="module" src="ui/{entry["file"]}"></script><script src="demo.js"></script></body>',1)
     (output/'index.html').write_text(html)
+    (output/'training.html').write_text('<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=./?tab=training"><title>Training · One Small Latte</title><a href="./?tab=training">Open Training</a>')
     for name in ('demo.css','demo.js'):
         shutil.copy2(ROOT/'demo'/name,output/name)
     shutil.copy2(ROOT/'assets/latte-logo.png',output/'logo.png')
     (output/'fonts').mkdir()
     for name in ('ArchitectsDaughter-Regular.ttf','Fraunces-Variable.ttf','OFL.txt','Fraunces-OFL.txt'):
         shutil.copy2(ROOT/'fonts'/name,output/'fonts'/name)
-    config=tomllib.loads((ROOT/'demo/config.toml').read_text())
-    body='<p class="eyebrow">RECORDED TRAINING · COMPLETE</p><h1>A small model, learning.</h1><p>Explore a real 201-step training run. These are saved measurements; training new models runs on your computer.</p>'
-    body+='<section class="demo-card"><h2>Training progress</h2><p>201 / 201 optimizer steps · 6 recorded checkpoints · batch of 4</p><div class="demo-legend"><span>━ Training</span><span>┄ Validation</span></div>'+chart(progress)
-    body+=f'<p class="demo-metrics">Final training loss: {progress["loss"]:.4f} · Validation loss: {progress["validation_loss"]:.4f}</p><a href="./">Explore recorded matrices →</a></section>'
-    body+='<div class="demo-columns">'+settings('Architecture',config['model'])+settings('Training settings',config['training'])+'</div>'
-    body+='<section class="demo-card"><h2>Corpus</h2><p>The same fixed character corpus used by this recording; 90% training, 10% validation.</p><pre class="demo-corpus">'+escape(record['corpus']['text'])+'</pre></section>'
-    body+='<section class="demo-card"><h2>Train with your own text</h2><p>Paste a corpus, choose the architecture, and watch live training and validation curves in the local Training tab.</p><a class="demo-button" href="run-locally.html">Run Latte locally →</a></section>'
-    (output/'training.html').write_text(document('Recorded training',body,'Training'))
     guide=(ROOT/'demo/run-locally.html').read_text()
     (output/'run-locally.html').write_text(document('Run locally',guide,'Run locally'))
     (output/'.nojekyll').touch()

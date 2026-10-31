@@ -8,13 +8,16 @@ characters per sequence, and 201 AdamW updates. Checkpoints at steps 1, 41, 81,
 Explorer supports checkpoint and sequence selection, before/after-update
 comparison, matrix and cell math, operand ribbons, block filtering, zoom, pan,
 smooth input/output navigation, corpus connectors, and cumulative corpus usage.
-Training shows the saved training and validation loss curves, exact settings,
-and the same corpus. New training and custom corpora require the local app;
-the demo links to its setup guide. No browser training or backend is simulated.
+Training uses the same React interface as the local app, populated with the
+saved loss curves, exact settings, corpus, and recent run. Attempts to edit the
+corpus or settings, start training, or delete the saved run open a Run locally
+message. Viewing settings, switching tabs, and exploring the recording work normally. No browser training or backend is simulated.
 
 ## Build and preview
 
 ```sh
+npm ci --prefix frontend
+npm run build --prefix frontend
 python3 -m pip install 'numpy>=1.26'
 python3 scripts/build_pages.py
 python3 -m http.server 8794 --directory _site
@@ -22,8 +25,8 @@ python3 -m http.server 8794 --directory _site
 
 Open http://localhost:8794. Every asset uses project-relative paths, including
 when hosted under `/Latte/`. The builder verifies checksums and regenerates the
-explorer from the current sources. It needs no PyTorch, Node.js, local API,
-checkpoint, or external font/CDN requests. `_site` is generated and ignored.
+explorer from the current sources. The Python builder needs no PyTorch or checkpoint. Build the shared React UI
+with Node.js first. Visitors need no local API or external font/CDN requests. `_site` is generated and ignored.
 Recorded tensors are compressed in `demo/data` and embedded in the built page.
 
 ## Refresh the public recording

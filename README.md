@@ -5,7 +5,9 @@
 **[Try the web demo](https://imruljubair.github.io/Latte/)** ·
 **[Run locally](https://imruljubair.github.io/Latte/run-locally.html)**
 
-The web demo explores real recorded training. Run locally to train with your own
+The web demo uses the same Explorer and Training interface as the local app,
+with a real recorded run. Editing the corpus or settings, starting training,
+or deleting a run shows a Run locally message. Run locally to train with your own
 corpus and architecture. See [web demo development and publication](docs/web-demo.md).
 
 Latte is a local training explorer for a tiny educational transformer. Inspect

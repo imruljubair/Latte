@@ -1,6 +1,7 @@
 """Validate the published package without a server or PyTorch dependency."""
 from html.parser import HTMLParser
 from pathlib import Path
+import json
 import subprocess
 import sys
 import tempfile
@@ -10,9 +11,10 @@ from scripts.build_pages import ROOT, build
 
 class Links(HTMLParser):
     def __init__(self):
-        super().__init__(); self.targets=[]
+        super().__init__(); self.targets=[]; self.ids=[]
     def handle_starttag(self,tag,attrs):
         for name,value in attrs:
+            if name == 'id': self.ids.append(value)
             if name in ('href','src') and value:
                 self.targets.append(value)
 
@@ -26,13 +28,20 @@ class PagesPackage(unittest.TestCase):
                     if target.startswith(('https:','http:','data:','#')):
                         continue
                     self.assertFalse(target.startswith('/'),target)
-                    self.assertTrue((output/target).exists(),target)
+                    self.assertTrue((output/target.split('?')[0]).exists(),target)
             html=(output/'index.html').read_text()
-            self.assertIn('training-record-data',html)
+            self.assertIn('data-latte-demo',html)
+            self.assertIn('latte-root',html)
+            parser=Links();parser.feed(html)
+            self.assertNotIn('training-record-data',parser.ids)
             self.assertIn('demo.js',html)
             self.assertTrue((output/'.nojekyll').is_file())
-            self.assertIn('stroke-dasharray="5 4"',(output/'training.html').read_text())
-            self.assertIn('201 / 201',(output/'training.html').read_text())
+            data=json.loads((output/'data/workspace.json').read_text())
+            self.assertEqual(data['settings']['training']['steps'],201)
+            self.assertEqual(data['settings']['model']['num_layers'],2)
+            self.assertEqual(len(data['steps']),6)
+            self.assertTrue(data['run']['progress']['validation_history'])
+            self.assertIn('?tab=training',(output/'training.html').read_text())
             self.assertFalse(list(output.rglob('*.pt')))
             self.assertFalse((output/'api').exists())
 

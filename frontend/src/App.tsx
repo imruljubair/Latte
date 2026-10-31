@@ -3,6 +3,7 @@ import { maxIndex } from 'd3-array';
 import { revealApp } from './startup';
 import { Diagram } from './Diagram';
 import { TrainingStudio } from './TrainingStudio';
+import { isDemo, LocalOnlyNotice } from './demo';
 import { usageAt, usageColor, usageSegments } from './corpus-usage.mjs';
 import { parameterLabel, targetProbability } from './replay';
 import type { Metadata, Step, Tensor } from './types';
@@ -85,6 +86,7 @@ export function App({ meta, shell, first, getStep }: Props) {
 
   return <section className={`training-replay${activeTab === 'training' ? ' latte-training-screen' : ''}`}>
     <div className="latte-chrome-host" />
+    {isDemo && <LocalOnlyNotice />}
     <nav className="latte-app-tabs" role="tablist" aria-label="Latte workspace">
       <button id="latte-explorer-tab" type="button" role="tab" aria-selected={activeTab === 'explorer'} onClick={() => chooseTab('explorer')}>Explorer</button>
       <button id="latte-training-tab" type="button" role="tab" aria-selected={activeTab === 'training'} aria-controls="latte-training-panel" onClick={() => chooseTab('training')}>Training</button>
