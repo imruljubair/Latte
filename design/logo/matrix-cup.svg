@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Latte matrix cup</title>
+  <desc>A cup made of nine separate square matrix entries framed by blue matrix brackets, with one caramel entry.</desc>
+  <g fill="#9CB5C9">
+    <path d="M17 22h7v7h-7zM27 22h7v7h-7zM17 32h7v7h-7zM27 32h7v7h-7zM37 32h7v7h-7zM17 42h7v7h-7zM27 42h7v7h-7zM37 42h7v7h-7z"/>
+  </g>
+  <path d="M37 22h7v7h-7z" fill="#C9955B"/>
+  <g stroke="#627F9A" stroke-width="3" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M14 19h-4v33h4M47 19h4v33h-4"/>
+    <path d="M51 25h3a6 6 0 0 1 0 12h-3"/>
+    <path d="M9 58h43" stroke-linecap="round"/>
+    <path d="M25 13V6M36 13V6" stroke-width="2.5" stroke-linecap="round"/>
+  </g>
+</svg>

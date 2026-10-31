@@ -1,0 +1,10 @@
+@font-face{font-family:"Fraunces";font-style:normal;font-weight:100 900;font-display:swap;src:url("../../fonts/Fraunces-Variable.ttf") format("truetype")}
+.latte-brand strong{display:block;font:600 22px/1.1 "Fraunces",Georgia,serif;font-variation-settings:"SOFT" 50,"WONK" 1,"opsz" 32;letter-spacing:-.5px;color:#493329}
+
+@media(max-width:600px){html:root .latte-chrome-host .latte-topbar{padding:0 12px}.latte-brand{gap:7px}.latte-brand-mark{width:32px;height:32px}.latte-brand strong{font-size:18px}}
+@media(max-width:420px){.latte-brand strong{font-size:16px}.latte-brand{gap:6px}.latte-brand-mark{width:28px;height:28px}}
+
+@media(max-width:360px){.latte-app-tabs{right:8px}html:root .training-replay .latte-app-tabs button{font-size:10px;padding:5px 7px}}
+
+.latte-brand small{font-size:11px}
+@media(max-width:760px){.latte-brand small{font-size:10px;max-width:260px}}

@@ -1,0 +1,16 @@
+.venv/
+node_modules
+.artifact-work/
+__pycache__/
+*.py[cod]
+out/
+.DS_Store
+.env
+.env.*
+!.env.example
+releases/
+frontend/test-results/
+frontend/playwright-report/
+
+backups/
+_site/

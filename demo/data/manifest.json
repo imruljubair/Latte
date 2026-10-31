@@ -1,0 +1,19 @@
+{
+  "schema": "latte-recorded-demo-v1",
+  "name": "One Small Latte \u00b7 recorded training",
+  "source": "Real CPU PyTorch training, AdamW, seed 1337",
+  "steps": 201,
+  "recordedSteps": [
+    1,
+    41,
+    81,
+    121,
+    161,
+    201
+  ],
+  "files": {
+    "training-record.json.gz": "a1aa4c587dfdcd03ee8f46cf3907573b358d20502d0b13f2255c73faa2005141",
+    "training.trace.json.gz": "e501b204082f25f2b8fd2ee8124ac9f0d77f8848e762aa1d11a7b056582e8479",
+    "training-progress.json.gz": "96a896fa60a220d4ae1d8f414ce16efbc1a75242fcd8491ecbf5cc2947ce8cbb"
+  }
+}

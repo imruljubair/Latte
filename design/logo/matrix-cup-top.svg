@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <title>Latte — top-view matrix cup</title>
+  <desc>A white cup and saucer viewed from above, with a four by four matrix of cocoa squares on cream coffee.</desc>
+  <defs>
+    <radialGradient id="plate"><stop offset=".68" stop-color="#E8E7E4"/><stop offset=".9" stop-color="#FAFAF8"/><stop offset="1" stop-color="#E6E5E2"/></radialGradient>
+    <radialGradient id="coffee"><stop offset=".7" stop-color="#FFF2D1"/><stop offset="1" stop-color="#EABB80"/></radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#413C32" flood-opacity=".16"/></filter>
+  </defs>
+  <circle cx="64" cy="64" r="56" fill="url(#plate)" stroke="#FDFDFC" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="15" y="59" width="23" height="11" rx="5.5" fill="#FAFAF8" stroke="#E1DFDA" stroke-width="1.5"/>
+  <circle cx="66" cy="64" r="38" fill="#FAFAF8" stroke="#E3E1DC" stroke-width="1.5" filter="url(#shadow)"/>
+  <circle cx="66" cy="64" r="32" fill="url(#coffee)" stroke="#EBD2AD"/>
+  <g fill="#684A35">
+    <path d="M50 48h6v6h-6zM59 48h6v6h-6zM68 48h6v6h-6zM77 48h6v6h-6z" opacity=".65"/>
+    <path d="M50 57h6v6h-6zM59 57h6v6h-6zM68 57h6v6h-6zM77 57h6v6h-6z" opacity=".85"/>
+    <path d="M50 66h6v6h-6zM59 66h6v6h-6zM68 66h6v6h-6zM77 66h6v6h-6z"/>
+    <path d="M50 75h6v6h-6zM59 75h6v6h-6zM68 75h6v6h-6z" opacity=".75"/>
+  </g>
+  <path d="M77 75h6v6h-6z" fill="#C48B46"/>
+</svg>

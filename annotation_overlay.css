@@ -1,0 +1,117 @@
+.annotated-explorer { padding-left: 250px; background: #f7f2eb; }
+html:has(body.annotated-explorer) { background: #f7f2eb; }
+.annotated-explorer { overflow: hidden; height: 100vh; box-sizing: border-box; }
+html:has(body.annotated-explorer) { overflow: hidden; }
+.annotated-explorer .worksheet { zoom: 1 !important; left: 0 !important; top: 0 !important; transform-origin: 0 0; transform: scale(var(--workbook-zoom, .25)) translate(var(--camera-pan-x, 0px), var(--camera-pan-y, 0px)); will-change: transform; }
+.annotated-explorer .cursor-context { display: none !important; }
+.annotated-explorer .workbook-toolbar,
+.annotated-explorer .sequence-editor { z-index: 100; }
+.annotated-explorer .math-panel { top: 76px; }
+.annotated-explorer .math-panel { width: min(480px, 94vw); }
+.annotated-explorer .math-substitution { padding: 0; background: transparent; }
+.worked-products { width: 100%; border-collapse: collapse; font: 11px/1.4 ui-sans-serif,system-ui; }
+.worked-products th { text-align: left; padding: 7px; color: #8493a7; font-weight: 500; }
+.worked-products td { padding: 5px 3px; border-bottom: 1px solid #eef1f6; vertical-align: top; }
+.worked-chip { --input-accent: #70829b; display: inline-flex; flex-direction: column; gap: 3px; text-align: left; max-width: 100%; padding: 6px 8px; border: 0; border-left: 3px solid var(--input-accent); border-radius: 4px; background: #f3f6fa; color: #273950; font: 11px/1.4 ui-sans-serif,system-ui; }
+button.worked-chip { cursor: pointer; }
+.worked-coordinate { font-size: 9px; color: var(--input-accent); overflow-wrap: anywhere; }
+.worked-chip strong { font: 12px ui-monospace,monospace; }
+.worked-product { color: #63418b; font: 12px/1.5 ui-monospace,monospace; }
+.worked-total { margin-top: 14px; padding: 12px; border-radius: 8px; background: #eee8f8; color: #63418b; font: 600 13px/1.5 ui-sans-serif,system-ui; }
+.worked-step { padding: 10px 0; border-bottom: 1px solid #edf1f6; }
+.worked-step-title { font: 600 11px ui-sans-serif,system-ui; color: #546983; margin-bottom: 6px; }
+.worked-step-inputs { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+.worked-operator { color: #8a98aa; }
+.worked-step-result { margin-top: 7px; color: #63418b; font: 12px/1.5 ui-monospace,monospace; }
+.worked-input-highlight { box-shadow: inset 0 0 0 3px var(--input-accent) !important; }
+.worked-legend { border-left: 3px solid var(--input-accent); padding: 5px 8px; font-size: 10px; color: var(--input-accent); }
+.worked-range { margin: 8px 0; color: #61758f; font: 10px/1.5 ui-sans-serif,system-ui; }
+.worked-range summary { cursor: pointer; }
+.worked-range-values { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 7px; }
+@media(max-width: 760px) { .annotated-explorer .math-panel { top: 126px; } }
+.annotated-explorer .dependency-overlay { display: block; clip-path: inset(0); }
+.annotated-explorer .dependency-link { stroke: #8746b8; stroke-width: 1.8; opacity: .22; }
+.annotated-explorer .dependency-link-dot { fill: #8746b8; r: 2px; opacity: .3; }
+.edge-connections { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 45; pointer-events: none; clip-path: inset(76px 0 44px 0); }
+.edge-route, .range-edge { fill: none; stroke: #4278bd; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+.edge-endpoint { fill: #4278bd; }
+@media(max-width: 760px) { .edge-connections { clip-path: inset(126px 0 44px 0); } }
+@media print { .edge-connections { display: none; } }
+.bracket-fade { position: fixed; z-index: 46; inset: 76px auto 44px 0; width: 245px; pointer-events: none; background: linear-gradient(90deg, #f7f2ebee 0%, #f7f2ebca 65%, #f7f2eb00 100%); backdrop-filter: blur(5px); mask-image: linear-gradient(90deg, black 0%, black 65%, transparent 100%); }
+.bracket-fade.bracket-fade-right { left: auto; right: 0; width: 140px; opacity: .75; background: linear-gradient(270deg, #f7f2ebee 0%, #f7f2ebca 65%, #f7f2eb00 100%); mask-image: linear-gradient(270deg, black 0%, black 65%, transparent 100%); }
+.annotated-explorer.pan-enabled .worksheet { cursor: grab; touch-action: none; }
+.annotated-explorer.can-zoom-in .stage-content,
+.annotated-explorer.can-zoom-in .stage-content * { cursor: zoom-in !important; }
+.annotated-explorer:not(.can-zoom-in) .stage-content { cursor: default; }
+.annotated-explorer:not(.can-zoom-in) .calculation-cell { cursor: pointer; }
+.annotated-explorer.pan-enabled .worksheet,
+.annotated-explorer.pan-enabled .worksheet * { cursor: grab !important; }
+.annotated-explorer.is-panning, .annotated-explorer.is-panning * { cursor: grabbing !important; user-select: none !important; }
+.pan-button[aria-pressed='true'] { background: #dce8fb; color: #315a92; }
+@media(max-width: 760px) { .bracket-fade { width: 180px; top: 126px; } }
+.annotation-overlay { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 50; pointer-events: none; font-family: ui-sans-serif, system-ui, sans-serif; overflow: hidden; }
+.annotation-overlay { clip-path: inset(76px 0 44px 0); }
+.annotated-explorer .sheet-tabs { display: none; }
+.annotated-explorer { padding-bottom: 12px; }
+.explorer-footer { position: fixed; z-index: 200; left: 0; right: 0; bottom: 0; height: 30px; border-top: 1px solid #e0e6ef; background: #ffffffed; backdrop-filter: blur(12px); }
+.annotated-explorer .math-panel { bottom: 30px; }
+.annotated-explorer .generation-settings { bottom: 40px; }
+.annotated-explorer .edge-connections,
+.annotated-explorer .annotation-overlay { clip-path: inset(76px 0 0 0); }
+.annotated-explorer .annotation-overlay { mask-image: linear-gradient(to bottom, transparent 76px, black 104px); }
+@media(max-width: 760px) { .annotated-explorer .annotation-overlay { mask-image: linear-gradient(to bottom, transparent 126px, black 154px); } }
+.annotated-explorer .bracket-fade { bottom: 0; }
+.annotated-explorer .bracket-fade {
+  top: 46px;
+  mask-image: linear-gradient(90deg, black 0%, black 65%, transparent 100%), linear-gradient(to bottom, transparent, black 30px);
+  mask-composite: intersect;
+}
+.annotated-explorer .bracket-fade.bracket-fade-right {
+  mask-image: linear-gradient(270deg, black 0%, black 65%, transparent 100%), linear-gradient(to bottom, transparent, black 30px);
+}
+@media(max-width: 760px) { .annotated-explorer .bracket-fade { top: 96px; } }
+@media(max-width: 760px) {
+  .annotated-explorer .edge-connections,
+  .annotated-explorer .annotation-overlay { clip-path: inset(126px 0 0 0); }
+}
+.annotated-explorer .sheet-tab:not([data-sheet='sheet-0']) { display: none; }
+.annotated-explorer .worksheet:not(#sheet-0) { display: none !important; }
+.annotation-overlay text { paint-order: stroke; stroke: #f7f2eb; stroke-width: 4px; stroke-linejoin: round; }
+.annotation-overlay .operation-annotation { pointer-events: auto; cursor: zoom-in; }
+.annotation-overlay .operation-annotation:hover,
+.annotation-overlay .operation-annotation:focus { fill: #2e5f99; outline: none; text-decoration: underline; }
+.annotated-explorer:not(.annotation-detail) .matrix-value::before,
+.annotated-explorer:not(.annotation-detail) .matrix-value::after { visibility: hidden; }
+@media(max-width: 760px) { .annotated-explorer { padding-left: 185px; } }
+@media(max-width: 760px) { .annotation-overlay { clip-path: inset(126px 0 44px 0); } }
+@media print { .annotation-overlay, .bracket-fade { display: none; } }
+
+/* A stable header surface for step brackets, above the blurred canvas. */
+.bracket-fade-top { position:fixed; inset:0 0 auto; height:110px; z-index:47; pointer-events:none; background:linear-gradient(to bottom,#f7f2eb 0%,#f7f2ebf5 65%,#f7f2eb00 100%); backdrop-filter:blur(7px); mask-image:linear-gradient(to bottom,black 0%,black 65%,transparent 100%); }
+.annotated-explorer .annotation-overlay { clip-path:inset(44px 0 0); mask-image:none; }
+.annotation-overlay .kv-step-bracket-label { opacity:1; }
+@media(max-width:760px) {
+ .bracket-fade-top { height:150px; }
+ .annotated-explorer .annotation-overlay { clip-path:inset(84px 0 0); mask-image:none; }
+}
+
+/* Fade hierarchy and matrix lines beneath the sharp step header. */
+.bracket-fade-top { z-index:51; }
+.annotated-explorer .annotation-overlay:not(.step-annotation-overlay) { mask-image:linear-gradient(to bottom,transparent 76px,black 112px); }
+.annotated-explorer .step-annotation-overlay { z-index:52; mask-image:none; }
+@media(max-width:760px) {
+ .annotated-explorer .annotation-overlay:not(.step-annotation-overlay) { mask-image:linear-gradient(to bottom,transparent 116px,black 152px); }
+}
+
+.annotated-explorer .worksheet { overflow-anchor:none; }
+
+.kv-step-tooltip { position:fixed; z-index:210; padding:5px 8px; border:1px solid #dce4ef; border-radius:4px; background:#fff; color:#465365; box-shadow:0 3px 12px #24365512; font:11px/1.4 system-ui,sans-serif; pointer-events:none; }
+.kv-step-tooltip[hidden] { display:none; }
+
+.kv-step-tooltip { white-space:pre-wrap; max-width:min(420px,calc(100vw - 24px)); overflow-wrap:anywhere; }
+
+.kv-step-token-list { display:flex;flex-wrap:wrap;gap:4px;margin-top:6px; }
+.kv-step-token { display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:24px;box-sizing:border-box;padding:2px 5px;background:#edf2f8;border:1px solid #d5dfec;border-radius:3px;font:12px/1 ui-monospace,monospace;white-space:pre; }
+
+.kv-step-tooltip-inline { display:flex;align-items:center;gap:8px; }
+.kv-step-tooltip-inline .kv-step-token-list { margin-top:0; }

@@ -1,0 +1,18 @@
+{
+  "../fonts/Fraunces-Variable.ttf": {
+    "file": "assets/Fraunces-Variable-BR5x10i8.ttf",
+    "src": "../fonts/Fraunces-Variable.ttf"
+  },
+  "src/main.tsx": {
+    "file": "assets/main-BIfd0Nbu.js",
+    "name": "main",
+    "src": "src/main.tsx",
+    "isEntry": true,
+    "css": [
+      "assets/main-CMcz2QN-.css"
+    ],
+    "assets": [
+      "assets/Fraunces-Variable-BR5x10i8.ttf"
+    ]
+  }
+}

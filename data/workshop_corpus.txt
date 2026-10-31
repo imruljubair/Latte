@@ -1,0 +1,58 @@
+Character key for experiments:
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+0123456789
+.,!?;:'"-()
+
+Several days before the autumn festival, a young clockmaker named Nila opened a quiet workshop beside the town square.
+The shelves held brass gears, blue springs, tiny screws, and clocks that chimed in many different voices.
+Every morning Nila cleaned the benches, sharpened her pencils, and wrote a careful list of repairs.
+Customers brought pocket watches, kitchen timers, music boxes, and one enormous clock shaped like a moon.
+Nila listened to every mechanism before touching it because each machine revealed its problem through rhythm.
+
+One rainy afternoon, a teacher named Arun arrived with a broken classroom clock.
+The clock had stopped at 3:17, exactly when a loud storm had shaken the school windows.
+Nila removed the wooden cover and discovered a bent wheel trapped beneath the minute hand.
+She measured the wheel, drew a replacement, and cut a new piece from a thin sheet of brass.
+Arun watched as she fitted the wheel, added one drop of oil, and turned the key.
+Tick, tick, tick: the clock began moving again.
+
+Across the square stood an old observatory with a silver dome.
+Its caretaker, Mara, used a telescope to record the Moon, bright planets, and distant stars.
+Mara visited the workshop carrying a small device that rotated a map of the night sky.
+The device moved too quickly in winter and too slowly in summer, so its map never matched the stars.
+Nila compared the gears with Mara's notes and found that one gear had 23 teeth instead of 24.
+Together they designed a corrected gear and tested it beneath the open dome.
+At midnight the printed map pointed toward the same constellations visible through the telescope.
+
+The success gave Nila and Mara an idea for the festival.
+They would build a public clock that showed both ordinary time and the changing night sky.
+Children painted stars on a dark wooden circle while neighbors donated wire, glass, lamps, and tools.
+Arun's students calculated the spacing between the numbers and checked every angle twice.
+The baker brought warm rolls at 6:30, and the gardener filled the workshop window with yellow flowers.
+Even the mayor helped by polishing the frame until it reflected the afternoon sun.
+
+The first test failed.
+The clock hands moved correctly, but the star map turned backward.
+No one blamed the children, the students, or the makers.
+Instead, Nila placed two gears on a sheet of paper and asked, "What changes when these teeth meet?"
+A student rolled one gear around the other and noticed that touching gears rotate in opposite directions.
+The team added a third gear, tested the system again, and watched the star map turn correctly.
+
+On festival night, the square filled with music and conversation.
+At 8:00 the lamps dimmed, the public clock chimed, and its painted sky began to move.
+The Moon crossed a glass window while tiny lights marked the brightest constellations.
+Mara explained how travelers once used the stars to find north.
+Nila opened the clock's lower panel so visitors could see the gears working together.
+People asked questions, sketched mechanisms, and imagined machines of their own.
+
+After the festival, the clock remained in the square.
+Several people checked it each day: children before school, merchants opening their shops, and families walking home.
+When a sound changed or a hand drifted, someone left a note at Nila's workshop.
+She recorded the observation, inspected the mechanism, and made the smallest necessary adjustment.
+The clock was never truly finished; it became a shared experiment that improved through careful attention.
+
+Years later, new apprentices joined the workshop.
+Nila taught them to observe first, measure twice, and explain every change they made.
+She reminded them that a useful machine is more than metal and motion.
+It also carries the patience, questions, mistakes, and discoveries of the people who build it together.

@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+LATTE_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "${LATTE_PYTHON:-python3}" "$LATTE_ROOT/launch.py" "$@"

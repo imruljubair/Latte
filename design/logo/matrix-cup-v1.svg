@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+  <title>Latte matrix cup</title>
+  <desc>A blue cup formed from a three by three matrix with one caramel cell.</desc>
+  <path d="M44 23h5a8 8 0 0 1 0 16h-5" stroke="#627F9A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13 20h31v25a6 6 0 0 1-6 6H19a6 6 0 0 1-6-6V20Z" fill="#F7FAFC"/>
+  <path d="M34 22h8v8h-8z" fill="#C9955B"/>
+  <path d="M23.3 21v29M33.7 21v29M14 30.3h29M14 40.7h29" stroke="#A9BDCD" stroke-width="1.5"/>
+  <path d="M13 20h31v25a6 6 0 0 1-6 6H19a6 6 0 0 1-6-6V20Z" stroke="#627F9A" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M10 57h37" stroke="#627F9A" stroke-width="3" stroke-linecap="round"/>
+  <path d="M25 13c-3-3 3-4 0-7M34 13c-3-3 3-4 0-7" stroke="#627F9A" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
