@@ -17,6 +17,10 @@ def main():
     files = {}
     for name in ('training-record.json', 'training.trace.json', 'training-progress.json'):
         payload = (output/name).read_bytes()
+        if name == 'training.trace.json':
+            trace = json.loads(payload)
+            trace['checkpoint'] = 'out/pages-demo/model.pt'
+            payload = json.dumps(trace, ensure_ascii=False).encode()
         filename = name+'.gz'
         (destination/filename).write_bytes(gzip.compress(payload, mtime=0))
         files[filename] = hashlib.sha256(payload).hexdigest()
