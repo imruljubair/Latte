@@ -19,9 +19,14 @@ for(const url of ['/',exported]){
     const picker=frame.getByRole('region',{name:'Choose visualization blocks'});
     const choices=picker.locator('.stage-picker-list input[data-stage-leaf]');
     await expect(choices).toHaveCount(total);
-    await expect(picker.getByRole('button',{name:'Show selected blocks'})).toBeDisabled();
+    const apply=picker.getByRole('button',{name:'Show selected blocks'});
+    await expect(apply).toBeDisabled();
+    await expect(apply).toBeInViewport();
+    const initialButton=await apply.boundingBox();
     await choices.last().check();
-    await picker.getByRole('button',{name:'Show selected blocks'}).click();
+    await expect(apply).toBeInViewport();
+    expect((await apply.boundingBox())?.y).toBe(initialButton?.y);
+    await apply.click();
     expect((await visible())).toHaveLength(1);
     expect(await values()).toEqual(initial);
     await page.locator('[data-action="sequence-next"]').click();
