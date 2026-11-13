@@ -1,0 +1,18 @@
+{
+  "schema": "latte-recorded-demo-v1",
+  "name": "Longer context",
+  "source": "CPU PyTorch training, AdamW, seed 1337",
+  "steps": 161,
+  "recordedSteps": [
+    1,
+    41,
+    81,
+    121,
+    161
+  ],
+  "files": {
+    "training-record.json.gz": "7f42c3ba8bccbda41378acc3a6508e46be0076e1c44b928bc184d18c18d8b5d3",
+    "training.trace.json.gz": "9af88b626b4b20b442f49fb4cfe879e3b446a5ef745fb17356e2d4d9fb7bfdbe",
+    "training-progress.json.gz": "dc9b145d98dd8be098773bf08d40adbde020948bcb743c8b7d2a9fa8b0dc83b5"
+  }
+}

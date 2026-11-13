@@ -5,7 +5,7 @@ import type { Metadata } from './types';
 
 type Model = { model_dim: number; qk_dim: number; value_dim: number; num_heads: number; num_layers: number; ffn_dim: number; context_length: number };
 type Settings = { steps: number; batch_size: number; learning_rate: number; weight_decay: number; seed: number; train_split: number; record_every: number };
-type Run = { id: string; name: string; created_at?: string; state: string; explorer_ready: boolean; log: string; progress?: { phase?: string; step?: number; total_steps?: number; loss?: number | null; recorded?: number; history_averaged?: boolean; history_sparse?: boolean; validation_loss?: number | null; validation_history?: { step: number; loss: number }[]; history?: { step: number; loss: number }[] } };
+type Run = { recorded_steps?: number[]; id: string; name: string; created_at?: string; state: string; explorer_ready: boolean; log: string; progress?: { phase?: string; step?: number; total_steps?: number; loss?: number | null; recorded?: number; history_averaged?: boolean; history_sparse?: boolean; validation_loss?: number | null; validation_history?: { step: number; loss: number }[]; history?: { step: number; loss: number }[] } };
 const active = (run: Run | null) => !!run && ['running', 'stopping'].includes(run.state);
 const states: Record<string, string> = { running: 'Training', complete: 'Complete', failed: 'Failed', stopped: 'Stopped', stopping: 'Stopping…', incomplete: 'Interrupted' };
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
@@ -22,8 +22,8 @@ function NumberField({ label, value, change, min = 1, max, step = 1 }: { label: 
   return <label>{label}<input type="number" readOnly={isDemo} required min={min} max={max} step={step} value={Number.isFinite(value) ? value : ''} onChange={event => change(event.target.valueAsNumber)} /></label>;
 }
 type LossPoint = { step: number; loss: number };
-function LossChart({ history, validation, averaged, sparse, totalSteps }: { history: LossPoint[]; validation: LossPoint[]; averaged?: boolean; sparse?: boolean; totalSteps: number }) {
-  const all = [...history, ...validation];
+function LossChart({ history, validation, averaged, sparse, totalSteps, scaleHistory }: { history: LossPoint[]; validation: LossPoint[]; averaged?: boolean; sparse?: boolean; totalSteps: number; scaleHistory?: LossPoint[] }) {
+  const all = scaleHistory || [...history, ...validation];
   const min = all.length ? Math.min(...all.map(p => p.loss)) : 0, max = all.length ? Math.max(...all.map(p => p.loss)) : 1;
   const start = 0, end = Math.max(1, totalSteps);
   const points = (series: LossPoint[]) => series.map(p => `${44 + 492 * (p.step - start) / Math.max(1, end - start)},${15 + 100 * (max - p.loss) / Math.max(.01, max - min)}`).join(' ');
@@ -53,6 +53,8 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
   const [run, setRun] = useState<Run | null>(null), [runs, setRuns] = useState<Run[]>([]);
   const generation = useRef(0);
   const monitor = useRef<HTMLElement>(null);
+  const [replayStep, setReplayStep] = useState<number | null>(null);
+  const [replaying, setReplaying] = useState(false);
   const [deleting, setDeleting] = useState('');
   const [restoring, setRestoring] = useState(true);
   const [error, setError] = useState(''), [starting, setStarting] = useState(false), [stopping, setStopping] = useState(false);
@@ -69,9 +71,11 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
         const items = await api<Run[]>('/api/runs');
         if (disposed) return;
         setRuns(items);
-        const latest = items.find(item => active(item)) || [...items]
+        const requested = new URLSearchParams(location.search).get('run');
+        const example = isDemo ? items.find(item => item.id === requested) || items[0] : undefined;
+        const latest = example || items.find(item => active(item)) || [...items]
           .filter(item => item.created_at)
-          .sort((x,y) => y.created_at!.localeCompare(x.created_at!))[0] || (isDemo ? items[0] : undefined);
+          .sort((x,y) => y.created_at!.localeCompare(x.created_at!))[0];
         if (latest) {
           const [selected, selectedCorpus, selectedSettings] = await Promise.all([
             api<Run>(`/api/runs/${latest.id}/status`),
@@ -111,8 +115,32 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
   const trainingChars = Math.floor(characters * settings.train_split);
   const corpusValid = Math.min(trainingChars, characters - trainingChars) >= model.context_length + 2;
   const busy = restoring || starting || active(run);
-  const progress = run?.progress, total = progress?.total_steps || progress?.step || settings.steps, current = progress?.step || 0;
-  const phase = restoring ? 'Loading latest run…' : starting ? 'Starting a new run…' : run?.state === 'running' && progress?.phase === 'exporting' ? 'Preparing explorer…' : run ? states[run.state] || run.state : 'Ready when you are';
+  const progress = run?.progress;
+  const total = progress?.total_steps || progress?.step || settings.steps;
+  const current = replayStep ?? progress?.step ?? 0;
+  const trainingHistory = progress?.history || [];
+  const validation = progress?.validation_history || [];
+  const shownHistory = replayStep === null ? trainingHistory : trainingHistory.filter(point => point.step <= current);
+  const shownValidation = replayStep === null ? validation : validation.filter(point => point.step <= current);
+  const loss = replayStep === null ? progress?.loss : shownHistory.at(-1)?.loss;
+  const validationLoss = replayStep === null ? progress?.validation_loss : shownValidation.at(-1)?.loss;
+  const recorded = replayStep === null ? progress?.recorded : (run?.recorded_steps || []).filter(step => step <= current).length;
+  const phase = replaying ? 'Replaying recording…' : restoring ? 'Loading run…' : starting ? 'Starting a new run…' : run?.state === 'running' && progress?.phase === 'exporting' ? 'Preparing explorer…' : run ? states[run.state] || run.state : 'Ready when you are';
+
+  useEffect(() => {
+    if (!replaying) return;
+    const startTime = performance.now();
+    const timer = setInterval(() => {
+      const step = Math.min(total, Math.floor(total * (performance.now() - startTime) / 6500));
+      setReplayStep(step);
+      if (step === total) {
+        setReplaying(false);
+        setReplayStep(null);
+      }
+    }, 80);
+    return () => clearInterval(timer);
+  }, [replaying, total]);
+
   const modelField = (key: keyof Model, label: string, max: number) => <NumberField key={key} label={label} value={model[key]} max={max} change={value => setModel(previous => ({ ...previous, [key]: value }))} />;
   const settingField = (key: keyof Settings, label: string, min = 1, step: number | 'any' = 1, max?: number) => <NumberField key={key} label={label} value={settings[key]} min={min} max={max} step={step} change={value => setSettings(previous => ({ ...previous, [key]: value }))} />;
   function focusProgress() {
@@ -121,7 +149,13 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
   }
   async function start(event: React.FormEvent) {
     event.preventDefault();
-    if (isDemo) { showLocalOnly(); return; }
+    if (isDemo) {
+      if (!progress || replaying) return;
+      setReplayStep(0);
+      setReplaying(true);
+      focusProgress();
+      return;
+    }
     const requestGeneration = ++generation.current;
     setError(''); setStarting(true); setStopping(false); setRun(null);
     focusProgress();
@@ -134,8 +168,11 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
     finally { setStarting(false); }
   }
   async function selectRun(item: Run) {
+    setReplaying(false);
+    setReplayStep(null);
     const requestGeneration = ++generation.current;
     setError('');
+    if (isDemo) setRestoring(true);
     try {
       const [selected, selectedCorpus, selectedSettings] = await Promise.all([
         api<Run>(`/api/runs/${item.id}/status`),
@@ -145,8 +182,16 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
       if (generation.current !== requestGeneration) return;
       remember(item.id); setRun(selected); setCorpus(selectedCorpus.text);
       setModel(selectedSettings.model); setSettings(selectedSettings.training); setName(selected.name);
-      focusProgress();
-    } catch (reason) { setError((reason as Error).message); }
+      if (isDemo) {
+        const url = new URL(location.href);
+        url.searchParams.set('run', item.id);
+        window.history.replaceState(null, '', url);
+      } else focusProgress();
+    } catch (reason) {
+      if (generation.current === requestGeneration) setError((reason as Error).message);
+    } finally {
+      if (isDemo && generation.current === requestGeneration) setRestoring(false);
+    }
   }
   async function deleteRun(item: Run) {
     if (isDemo) { showLocalOnly(); return; }
@@ -166,13 +211,24 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
     catch (reason) { setError((reason as Error).message); setStopping(false); }
   }
   return <main className="latte-training-studio" id="latte-training-panel" role="tabpanel" aria-labelledby="latte-training-tab" aria-busy={restoring}>
-    <div className="latte-studio-intro"><div><span className="latte-studio-eyebrow">A model, made by you</span><h1>Train your next little model.</h1><p>Bring your own text. Watch it learn. Explore the calculations.</p></div><span className="latte-studio-local">Local PyTorch · AdamW · character tokens</span></div>
+    <div className="latte-studio-intro"><div><span className="latte-studio-eyebrow">{isDemo ? "Recorded examples" : "A model, made by you"}</span><h1>{isDemo ? "Replay a training run." : "Train your next little model."}</h1><p>{isDemo ? "Compare configurations and inspect the saved checkpoints." : "Bring your own text. Watch it learn. Explore the calculations."}</p></div><span className="latte-studio-local">Local PyTorch · AdamW · character tokens</span></div>
     {error && <p className="latte-studio-error" role="alert">{error}</p>}
     <div className="latte-studio-columns">
       <form className="latte-training-form" onSubmit={start}
-        onPointerDownCapture={event => { if (isDemo && (event.target as HTMLElement).closest('input,textarea,button')) { event.preventDefault(); showLocalOnly(); } }}
+        onPointerDownCapture={event => { if (isDemo && (event.target as HTMLElement).closest('input,textarea,button:not(.latte-start-training)')) { event.preventDefault(); showLocalOnly(); } }}
         onKeyDownCapture={event => { if (isDemo && (event.target as HTMLElement).matches('input,textarea') && (event.key.length === 1 || ['Backspace','Delete','ArrowUp','ArrowDown'].includes(event.key)) && !event.ctrlKey && !event.metaKey) { event.preventDefault(); showLocalOnly(); } }}
         onPasteCapture={event => { if (isDemo) { event.preventDefault(); showLocalOnly(); } }}>
+        {isDemo && <section className="latte-studio-card">
+          <label>Example configuration
+            <select value={run?.id || ''} disabled={restoring} onChange={event => {
+              const example = runs.find(item => item.id === event.target.value);
+              if (example) void selectRun(example);
+            }}>
+              {runs.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+            </select>
+          </label>
+          <p className="latte-form-hint">Replay a saved run to watch its loss curves build. <a href="run-locally.html">Install Latte for custom training →</a></p>
+        </section>}
         <fieldset disabled={busy}>
           <section className="latte-studio-card"><div className="latte-card-heading"><h2>1. Your corpus</h2><button type="button" onClick={() => isDemo ? showLocalOnly() : setCorpus(meta.corpus.text)}>Use current corpus</button></div>
             <label>Run name <span className="latte-optional">optional</span><input readOnly={isDemo} value={name} maxLength={80} placeholder="A small story experiment" onChange={event => setName(event.target.value)} /></label>
@@ -189,20 +245,20 @@ export function TrainingStudio({ meta }: { meta: Metadata }) {
             {settingField('weight_decay', 'Weight decay', 0, 'any', 1)}{settingField('seed', 'Random seed', 0, 1, 4294967295)}{settingField('train_split', 'Training split', .01, .01, .99)}
           </div></details><p className="latte-form-hint">The first and final steps are always recorded. Recording less often makes replay files smaller.</p></section>
         </fieldset>
-        <button className="latte-start-training" type="submit" disabled={busy || !corpusValid}>{starting ? 'Starting…' : active(run) ? 'Training in progress' : 'Start training'}</button>
+        <button className="latte-start-training" type="submit" disabled={isDemo ? busy || replaying || !progress : busy || !corpusValid}>{isDemo ? (replaying ? 'Replaying training…' : 'Replay training') : starting ? 'Starting…' : active(run) ? 'Training in progress' : 'Start training'}</button>
       </form>
       <aside className="latte-training-monitor"><section ref={monitor} tabIndex={-1} className="latte-studio-card latte-progress-card" aria-label="Training progress">
         <div className="latte-card-heading"><h2>Training progress</h2><span className={`latte-run-state ${run?.state || ''}`} role="status">{phase}</span></div>
         <p className="latte-monitor-name">{run?.name || 'Your next experiment'}</p>
         <progress max={total} value={current} aria-label="Training step progress" />
-        <div className="latte-progress-stats"><div><strong>{current} <small>/ {total}</small></strong><span>optimizer steps</span></div><div><strong>{progress?.loss == null ? '—' : progress.loss.toFixed(4)}</strong><span>latest training loss</span></div><div><strong>{progress?.validation_loss == null ? '—' : progress.validation_loss.toFixed(4)}</strong><span>latest validation loss</span></div><div><strong>{progress?.recorded || 0}</strong><span>recorded steps</span></div></div>
-        <LossChart key={run?.id || 'new-run'} totalSteps={total} history={progress?.history || []} validation={progress?.validation_history || []} averaged={progress?.history_averaged} sparse={progress?.history_sparse} />
+        <div className="latte-progress-stats"><div><strong>{current} <small>/ {total}</small></strong><span>optimizer steps</span></div><div><strong>{loss == null ? '—' : loss.toFixed(4)}</strong><span>latest training loss</span></div><div><strong>{validationLoss == null ? '—' : validationLoss.toFixed(4)}</strong><span>latest validation loss</span></div><div><strong>{recorded || 0}</strong><span>recorded steps</span></div></div>
+        <LossChart key={run?.id || 'new-run'} totalSteps={total} history={shownHistory} validation={shownValidation} scaleHistory={replayStep === null ? undefined : [...trainingHistory, ...validation]} averaged={progress?.history_averaged} sparse={progress?.history_sparse} />
         {run?.state === 'running' && progress?.phase === 'exporting' && <p className="latte-form-hint">Training is finished. Saving the checkpoint and preparing the interactive explorer.</p>}
-        <div className="latte-monitor-actions">{active(run) && <button type="button" disabled={stopping || run?.state === 'stopping'} onClick={stop}>{stopping || run?.state === 'stopping' ? 'Stopping…' : 'Stop training'}</button>}{run?.explorer_ready && <a className="latte-open-explorer" href={explorerHref(run.id)}>Open in explorer →</a>}</div>
+        <div className="latte-monitor-actions">{replaying && <button type="button" onClick={() => { setReplaying(false); setReplayStep(null); }}>End replay</button>}{active(run) && <button type="button" disabled={stopping || run?.state === 'stopping'} onClick={stop}>{stopping || run?.state === 'stopping' ? 'Stopping…' : 'Stop training'}</button>}{run?.explorer_ready && <a className="latte-open-explorer" href={explorerHref(run.id)}>Open in explorer →</a>}</div>
         {run?.state === 'failed' && <p className="latte-studio-error" role="alert">Training failed. See the run log below, adjust your settings, and try again.</p>}
         {run && <details className="latte-run-log"><summary>Run log</summary><pre>{run.log || 'Waiting for the training process…'}</pre></details>}
       </section>
-      <section className="latte-studio-card latte-recent-runs"><h2>Recent runs</h2><p className="latte-form-hint">Select a run to load its corpus, settings, progress, and log.</p>{runs.length ? <ul className="latte-run-list">{[...runs].sort((x, y) => (y.created_at || '').localeCompare(x.created_at || '')).map(item => <li key={item.id}><button type="button" aria-pressed={run?.id === item.id} disabled={restoring || starting || (active(run) && run?.id !== item.id)} onClick={() => selectRun(item)}><span>{item.name}</span><small>{states[item.state] || item.state}{run?.id === item.id ? ' · Viewing' : ' · View →'}</small></button>{item.explorer_ready && <a href={explorerHref(item.id)} aria-label={`Explore ${item.name}`}>Explore →</a>}{item.id !== 'default' && <button className="latte-delete-run" type="button" disabled={restoring || !!deleting || starting || active(item)} aria-label={`Delete ${item.name}`} onClick={() => deleteRun(item)}>{deleting === item.id ? 'Deleting…' : 'Delete'}</button>}</li>)}</ul> : <p className="latte-form-hint">Completed experiments will appear here.</p>}</section>
+      <section className="latte-studio-card latte-recent-runs"><h2>{isDemo ? 'Saved examples' : 'Recent runs'}</h2><p className="latte-form-hint">Select a run to load its corpus, settings, progress, and log.</p>{runs.length ? <ul className="latte-run-list">{[...runs].sort((x, y) => (y.created_at || '').localeCompare(x.created_at || '')).map(item => <li key={item.id}><button type="button" aria-pressed={run?.id === item.id} disabled={restoring || starting || (active(run) && run?.id !== item.id)} onClick={() => selectRun(item)}><span>{item.name}</span><small>{states[item.state] || item.state}{run?.id === item.id ? ' · Viewing' : ' · View →'}</small></button>{item.explorer_ready && <a href={explorerHref(item.id)} aria-label={`Explore ${item.name}`}>Explore →</a>}{!isDemo && item.id !== 'default' && <button className="latte-delete-run" type="button" disabled={restoring || !!deleting || starting || active(item)} aria-label={`Delete ${item.name}`} onClick={() => deleteRun(item)}>{deleting === item.id ? 'Deleting…' : 'Delete'}</button>}</li>)}</ul> : <p className="latte-form-hint">Completed experiments will appear here.</p>}</section>
       </aside>
     </div>
   </main>;

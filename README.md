@@ -5,10 +5,9 @@
 **[Try the web demo](https://imruljubair.github.io/Latte/)** ·
 **[Run locally](https://imruljubair.github.io/Latte/run-locally.html)**
 
-The web demo uses the same Explorer and Training interface as the local app,
-with a real recorded run. Editing the corpus or settings, starting training,
-or deleting a run shows a Run locally message. Run locally to train with your own
-corpus and architecture. See [web demo development and publication](docs/web-demo.md).
+The web demo lets you choose a recorded example and replay its training and
+validation curves. Open Explorer to inspect the saved checkpoints. Install Latte
+to train with your own corpus or settings. See [web demo development and publication](docs/web-demo.md).
 
 Latte is a local training explorer for a tiny educational transformer. Inspect
 input sequences, next-token predictions, losses, gradients, and AdamW updates.

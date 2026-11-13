@@ -1,22 +1,56 @@
 import { useEffect, useRef } from 'react';
 
 export const isDemo = document.documentElement.hasAttribute('data-latte-demo');
-export const explorerHref = (id: string) => isDemo ? './' : `/?run=${encodeURIComponent(id)}`;
+export const explorerHref = (id: string) => `${isDemo ? './' : '/'}?run=${encodeURIComponent(id)}`;
 export function showLocalOnly() { window.dispatchEvent(new Event('latte:local-only')); }
-let saved: Promise<any> | undefined;
+
+type DemoEntry = { id: string; file: string };
+type DemoWorkspace = {
+  metadata: { corpus: { text: string } };
+  shell: string;
+  run: unknown;
+  settings: unknown;
+  steps: unknown[];
+};
+
+async function loadJson<T>(path: string): Promise<T> {
+  const response = await fetch(new URL(`data/${path}`, document.baseURI));
+  if (!response.ok) throw new Error('Could not load the recorded example. Please reload.');
+  return response.json();
+}
+
+let catalog: Promise<DemoEntry[]> | undefined;
+const recordings = new Map<string, Promise<DemoWorkspace>>();
+
 export async function demoResponse(path: string, options?: RequestInit): Promise<Response> {
   if (options?.method && options.method !== 'GET') {
     showLocalOnly();
-    return new Response(JSON.stringify({detail:'Run Latte locally to edit or train.'}), {status:403});
+    return Response.json({ detail: 'Run Latte locally to edit settings or train a custom configuration.' }, { status: 403 });
   }
-  const data = await (saved ||= fetch(new URL('data/workspace.json', document.baseURI)).then(response => {
-    if (!response.ok) throw new Error('Could not load the recorded demo. Please reload.');
-    return response.json();
+
+  const entries = await (catalog ||= loadJson<DemoEntry[]>('runs.json').catch(error => {
+    catalog = undefined;
+    throw error;
   }));
-  const endpoint = path.replace(/^\/api\/runs\/(?:default|demo)/, '');
+  if (path === '/api/runs') return Response.json(entries);
+
+  const route = path.match(/^\/api\/runs\/([^/]+)(\/.*)$/);
+  const requested = route && decodeURIComponent(route[1]);
+  const entry = requested === 'default' ? entries[0] : entries.find(item => item.id === requested);
+  if (!entry || !route) return new Response('Recorded example not found', { status: 404 });
+
+  let recording = recordings.get(entry.id);
+  if (!recording) {
+    recording = loadJson<DemoWorkspace>(entry.file).catch(error => {
+      recordings.delete(entry.id);
+      throw error;
+    });
+    recordings.set(entry.id, recording);
+  }
+  const data = await recording;
+  const endpoint = route[2];
   let value: unknown;
-  if (path === '/api/runs') value = [data.run];
-  else if (endpoint === '/metadata') value = data.metadata;
+  if (endpoint === '/metadata') value = data.metadata;
   else if (endpoint === '/shell') return new Response(data.shell);
   else if (endpoint === '/status') value = data.run;
   else if (endpoint === '/corpus') value = {text:data.metadata.corpus.text};
@@ -36,7 +70,7 @@ export function LocalOnlyNotice() {
   if (!isDemo) return null;
   return <dialog ref={dialog} className="latte-local-only-dialog" aria-labelledby="latte-local-only-title">
     <h2 id="latte-local-only-title">Run Latte locally</h2>
-    <p>This online demo explores a recorded training run. Run Latte on your computer to change the corpus or settings, start training, and manage your runs.</p>
+    <p>Choose an example to replay its recorded training online. Install Latte to edit the corpus, change settings, or train a custom configuration.</p>
     <div><button type="button" onClick={() => dialog.current?.close()}>Keep exploring</button><a href="run-locally.html">Run locally →</a></div>
   </dialog>;
 }

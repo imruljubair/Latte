@@ -14,7 +14,7 @@ for(const width of [1440,390]){
     const corpus=page.getByRole('textbox',{name:'Training text'}),original=await corpus.inputValue();
     expect(original.length).toBeGreaterThan(100);
     const dialog=page.getByRole('dialog');
-    for(const control of [corpus,page.getByRole('spinbutton',{name:'Embedding dimension',exact:true}),page.getByRole('button',{name:'Start training',exact:true}),page.getByRole('button',{name:/^Delete /})]){
+    for(const control of [corpus,page.getByRole('spinbutton',{name:'Embedding dimension',exact:true})]){
       await control.click();await expect(dialog).toBeVisible();
       await expect(dialog.getByRole('link',{name:'Run locally →'})).toHaveAttribute('href','run-locally.html');
       await dialog.getByRole('button',{name:'Keep exploring'}).click();
@@ -28,6 +28,18 @@ for(const width of [1440,390]){
     await expect(page.locator('.training-record')).toHaveValue('1');
     await page.getByRole('tab',{name:'Training',exact:true}).click();
     await expect(corpus).toHaveValue(original);
+    const preset = page.getByLabel('Example configuration');
+    await preset.selectOption('single-head');
+    await expect(page.getByRole('spinbutton',{name:'Layers',exact:true})).toHaveValue('1');
+    const progress = page.getByRole('progressbar',{name:'Training step progress'});
+    await expect(progress).toHaveAttribute('value','121');
+    await page.getByRole('button',{name:'Replay training',exact:true}).click();
+    await expect(page.getByText('Replaying recording…',{exact:true})).toBeVisible();
+    await expect(progress).not.toHaveAttribute('value','121');
+    await expect(progress).toHaveAttribute('value','121',{timeout:10000});
+    await page.getByRole('tab',{name:'Explorer',exact:true}).click();
+    await expect(page).toHaveURL(/run=single-head/);
+    await expect(page.locator('.training-record option')).toHaveCount(5);
     expect(mutations).toEqual([]);
   });
 }

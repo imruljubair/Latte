@@ -1,0 +1,18 @@
+{
+  "schema": "latte-recorded-demo-v1",
+  "name": "One layer, one head",
+  "source": "CPU PyTorch training, AdamW, seed 1337",
+  "steps": 121,
+  "recordedSteps": [
+    1,
+    31,
+    61,
+    91,
+    121
+  ],
+  "files": {
+    "training-record.json.gz": "96c66a7b739366d7fc4071074b12353333897d1b6a79efac65448477f7e9bee2",
+    "training.trace.json.gz": "d79de6b7c22075d1b619bf6d7ed4ee9ba340bf4c404b352b67c080d1d358262b",
+    "training-progress.json.gz": "a9129a2daabb045d692869c4715eb9f2ec7adc3f308979f57a7c482d9a74b32a"
+  }
+}

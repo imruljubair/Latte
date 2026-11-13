@@ -1,17 +1,15 @@
 # GitHub Pages demo
 
-The online edition explores a real, seeded CPU PyTorch training recording.
-The public example uses the bundled story corpus, two layers, two heads, eight
-characters per sequence, and 201 AdamW updates. Checkpoints at steps 1, 41, 81,
-121, 161, and 201 contain the actual weights, gradients, and batches.
+The Training tab offers three real CPU PyTorch recordings on the bundled story
+corpus. The two-layer, two-head baseline runs for 201 steps. The one-layer,
+one-head example runs for 121 steps. The longer-context example uses 12 characters
+per sequence and runs for 161 steps. Choose a configuration and click **Replay
+training** to watch saved loss measurements and checkpoint counts advance.
+Custom training runs locally.
 
 Explorer supports checkpoint and sequence selection, before/after-update
 comparison, matrix and cell math, operand ribbons, block filtering, zoom, pan,
 smooth input/output navigation, corpus connectors, and cumulative corpus usage.
-Training uses the same React interface as the local app, populated with the
-saved loss curves, exact settings, corpus, and recent run. Attempts to edit the
-corpus or settings, start training, or delete the saved run open a Run locally
-message. Viewing settings, switching tabs, and exploring the recording work normally. No browser training or backend is simulated.
 
 ## Build and preview
 
@@ -27,9 +25,9 @@ Open http://localhost:8794. Every asset uses project-relative paths, including
 when hosted under `/Latte/`. The builder verifies checksums and regenerates the
 explorer from the current sources. The Python builder needs no PyTorch or checkpoint. Build the shared React UI
 with Node.js first. Visitors need no local API or external font/CDN requests. `_site` is generated and ignored.
-Recorded tensors are compressed in `demo/data` and embedded in the built page.
+Recorded tensors are compressed in `demo/data` and published as per-example JSON files.
 
-## Refresh the public recording
+## Refresh the public recordings
 
 With Latte's local dependencies installed:
 
@@ -38,9 +36,10 @@ With Latte's local dependencies installed:
 .venv/bin/python scripts/build_pages.py
 ```
 
-This uses `demo/config.toml` and writes only the dedicated `out/pages-demo`
-folder. It never exports other local runs. Commit the updated public files in
-`demo/data`; checkpoints and private run folders remain ignored.
+The recorder reads `demo/config.toml` and the overrides in `demo/presets.json`.
+Pass a preset ID such as `single-head` to refresh just that recording. Checkpoints
+are generated in temporary directories. Commit the updated public files in
+`demo/data`.
 
 ## Publish with GitHub Desktop
 

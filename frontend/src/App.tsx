@@ -3,7 +3,7 @@ import { maxIndex } from 'd3-array';
 import { revealApp } from './startup';
 import { Diagram } from './Diagram';
 import { TrainingStudio } from './TrainingStudio';
-import { isDemo, LocalOnlyNotice } from './demo';
+import { explorerHref, isDemo, LocalOnlyNotice } from './demo';
 import { usageAt, usageColor, usageSegments } from './corpus-usage.mjs';
 import { parameterLabel, targetProbability } from './replay';
 import type { Metadata, Step, Tensor } from './types';
@@ -36,9 +36,15 @@ export function App({ meta, shell, first, getStep }: Props) {
         style={{ backgroundColor: part.validation ? 'transparent' : usageColor(part.count, usage!.max_count) }}>{text.slice(part.start, part.end).join('')}</span>)
     : text.slice(from, to).join('');
 
+  const loadedRun = useRef(new URLSearchParams(location.search).get('run') || 'demo');
   function chooseTab(tab: string) {
-    setActiveTab(tab);
     const url = new URL(location.href);
+    const selectedRun = url.searchParams.get('run');
+    if (isDemo && tab === 'explorer' && selectedRun && selectedRun !== loadedRun.current) {
+      location.assign(explorerHref(selectedRun));
+      return;
+    }
+    setActiveTab(tab);
     if (tab === 'training') url.searchParams.set('tab', 'training');
     else url.searchParams.delete('tab');
     history.replaceState(null, '', url);

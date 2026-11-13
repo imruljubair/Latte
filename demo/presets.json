@@ -1,0 +1,26 @@
+[
+  {
+    "id": "demo",
+    "name": "Two layers, two heads",
+    "stride": 40,
+    "overrides": {}
+  },
+  {
+    "id": "single-head",
+    "name": "One layer, one head",
+    "stride": 30,
+    "overrides": {
+      "model": {"num_layers": 1, "num_heads": 1},
+      "training": {"steps": 121}
+    }
+  },
+  {
+    "id": "longer-context",
+    "name": "Longer context",
+    "stride": 40,
+    "overrides": {
+      "model": {"context_length": 12},
+      "training": {"steps": 161}
+    }
+  }
+]

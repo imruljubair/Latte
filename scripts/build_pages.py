@@ -12,11 +12,11 @@ import re
 import shutil
 import sys
 import tempfile
-import tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from export_trace_html import export_trace_html
+from scripts.demo_presets import load_presets, preset_config, recording_dir
 
 
 def navigation(active):
@@ -32,13 +32,14 @@ def document(title, body, active):
             +navigation(active)+'</header><main>'+body+'</main></body></html>')
 
 
-def build(output):
-    manifest=json.loads((ROOT/'demo/data/manifest.json').read_text())
+def build_recording(preset):
+    directory = recording_dir(preset)
+    manifest=json.loads((directory/'manifest.json').read_text())
     if manifest.get('schema')!='latte-recorded-demo-v1':
         raise ValueError('Invalid demo manifest')
     payloads={}
     for name in ('training-record.json','training.trace.json','training-progress.json'):
-        raw=gzip.decompress((ROOT/'demo/data'/(name+'.gz')).read_bytes())
+        raw=gzip.decompress((directory/(name+'.gz')).read_bytes())
         if hashlib.sha256(raw).hexdigest()!=manifest['files'][name+'.gz']:
             raise ValueError('Demo checksum mismatch: '+name)
         payloads[name]=raw
@@ -50,19 +51,11 @@ def build(output):
         raise ValueError('Missing loss curves')
     if not all('corpus_usage' in step for step in record['steps']):
         raise ValueError('Demo must include recorded corpus usage')
-    output=Path(output).resolve()
-    if output==ROOT or output in ROOT.parents or (output.exists() and any(output.iterdir()) and not (output/'.latte-pages-build').is_file()):
-        raise ValueError('Choose an empty output folder or a previous Latte Pages build')
-    if output.exists():
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
-    (output/'.latte-pages-build').touch()
     with tempfile.TemporaryDirectory() as folder:
         folder=Path(folder)
         for name,payload in payloads.items():
             (folder/name).write_bytes(payload)
-        export_trace_html(folder/'training.trace.json',output/'index.html',show='training')
-    html=(output/'index.html').read_text()
+        html = export_trace_html(folder/'training.trace.json',folder/'index.html',show='training').read_text()
     match=re.search(r'<script id="sequence-generation-data" type="application/json">(.*?)</script>',html,re.S)
     bundle=json.loads(match[1])
     runtime=bundle['trainingRuntime'].replace('</script','<\\/script')
@@ -74,14 +67,42 @@ def build(output):
     metadata={**{key:value for key,value in record.items() if key!='steps'},
               'corpus_usage':record['steps'][-1]['corpus_usage'],
               'steps':[{'step':step['step'],'loss':step['loss']} for step in record['steps']]}
-    run={'id':'demo','name':manifest['name'],'state':'complete','explorer_ready':True,
-         'log':'Recorded CPU PyTorch run · 201 optimizer steps · six saved checkpoints.','progress':progress}
-    config=tomllib.loads((ROOT/'demo/config.toml').read_text())
-    settings={'model':{key:value for key,value in config['model'].items() if key!='dropout'},
-              'training':{key:config['training'][key] for key in ('steps','batch_size','learning_rate','weight_decay','seed')}}
-    settings['training'].update(train_split=config['data']['train_split'],record_every=record['recording']['stride'])
+    run = {
+        'id': preset['id'], 'name': preset['name'], 'state': 'complete', 'explorer_ready': True,
+        'log': f"{manifest['source']} · {progress['step']} optimizer steps · {len(record['steps'])} checkpoints.",
+    }
+    config = preset_config(preset)
+    settings = {
+        'model': {key: value for key, value in config['model'].items() if key != 'dropout'},
+        'training': {key: config['training'][key] for key in ('steps', 'batch_size', 'learning_rate', 'weight_decay', 'seed')},
+    }
+    settings['training'].update(train_split=config['data']['train_split'], record_every=record['recording']['stride'])
+    workspace = {
+        'metadata': metadata, 'shell': bundle['shell'], 'steps': record['steps'],
+        'run': {**run, 'progress': progress, 'recorded_steps': manifest['recordedSteps']}, 'settings': settings,
+    }
+    return html, workspace, run
+
+
+def build(output):
+    output=Path(output).resolve()
+    if output==ROOT or output in ROOT.parents or (output.exists() and any(output.iterdir()) and not (output/'.latte-pages-build').is_file()):
+        raise ValueError('Choose an empty output folder or a previous Latte Pages build')
+    if output.exists():
+        shutil.rmtree(output)
+    output.mkdir(parents=True)
+    (output/'.latte-pages-build').touch()
     (output/'data').mkdir()
-    (output/'data/workspace.json').write_text(json.dumps({'metadata':metadata,'shell':bundle['shell'],'steps':record['steps'],'run':run,'settings':settings},ensure_ascii=False))
+    runs = []
+    for preset in load_presets():
+        bootstrap, workspace, run = build_recording(preset)
+        filename = f"{preset['id']}.json"
+        (output/'data'/filename).write_text(json.dumps(workspace, ensure_ascii=False))
+        runs.append({**run, 'file': filename})
+        if preset['id'] == 'demo':
+            html = bootstrap
+    (output/'data/runs.json').write_text(json.dumps(runs))
+
     dist=ROOT/'frontend/dist'
     entry=json.loads((dist/'.vite/manifest.json').read_text())['src/main.tsx']
     shutil.copytree(dist,output/'ui')
